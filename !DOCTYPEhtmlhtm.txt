@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LIU SEN ✦ 即梦AI创作者运营 - 像素RPG选关</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'VT323', monospace;
+      background: linear-gradient(135deg, #0a0a1a 0%, #1a1040 100%);
+      color: #ffffff;
+      overflow-x: hidden;
+      position: relative;
+      cursor: none;
+      min-height: 100vh;
+    }
+
+    #starCanvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+    }
+
+    #cursorCanvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 10000;
+    }
+
+    .main-lobby {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 60px 20px;
+      opacity: 1;
+      transition: opacity 0.3s ease;
+    }
+
+    .main-lobby.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .hero-title {
+      font-family: 'Press Start 2P', cursive;
+      font-size: 48px;
+      margin-bottom: 20px;
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .hero-title span {
+      display: inline-block;
+      padding: 15px 20px;
+      animation: colorPulse 3s infinite;
+    }
+
+    .hero-title span:nth-child(1) { background: #FFD700; color: #000; animation-delay: 0s; }
+    .hero-title span:nth-child(2) { background: #FFB6C1; color: #000; animation-delay: 0.3s; }
+    .hero-title span:nth-child(3) { background: #4169E1; color: #fff; animation-delay: 0.6s; }
+    .hero-title span:nth-child(4) { background: #FFD700; color: #000; animation-delay: 0.9s; }
+    .hero-title span:nth-child(5) { background: #FFB6C1; color: #000; animation-delay: 1.2s; }
+    .hero-title span:nth-child(6) { background: #4169E1; color: #fff; animation-delay: 1.5s; }
+    .hero-title span:nth-child(7) { background: #FFD700; color: #000; animation-delay: 1.8s; }
+
+    @keyframes colorPulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.05); opacity: 0.9; }
+    }
+
+    .hero-subtitle {
+      font-family: 'VT323', monospace;
+      font-size: 24px;
+      margin-bottom: 30px;
+      padding: 12px 24px;
+      background: rgba(255, 182, 193, 0.2);
+      border: 2px solid #FFB6C1;
+      border-style: solid dashed;
+      color: #FFB6C1;
+      text-shadow: 2px 2px 0 #000;
+      box-shadow: 0 0 15px rgba(255, 182, 193, 0.4);
+    }
+
+    .hero-tags {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 60px;
+    }
+
+    .pixel-tag {
+      font-family: 'VT323', monospace;
+      font-size: 18px;
+      padding: 8px 16px;
+      background: rgba(255, 182, 193, 0.2);
+      border: 2px solid #FFB6C1;
+      border-style: solid dashed;
+      color: #fff;
+      box-shadow: 0 0 10px rgba(255, 182, 193, 0.3);
+    }
+
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 280px);
+      gap: 40px;
+      margin-bottom: 60px;
+      justify-content: center;
+    }
+
+    .level-card {
+      width: 280px;
+      height: 240px;
+      background: rgba(20, 20, 60, 0.6);
+      backdrop-filter: blur(10px);
+      border: 2px solid #FFD700;
+      border-style: solid dashed;
+      padding: 30px 20px;
+      position: relative;
+      cursor: none;
+      transition: all 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      text-align: center;
+    }
+
+    .level-card::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255, 215, 0, 0.1) 0%, transparent 70%);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .level-card:hover::before {
+      opacity: 1;
+    }
+
+    .level-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 0 30px rgba(255, 215, 0, 0.6);
+      border-color: #FFB6C1;
+    }
+
+    .card-icon {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      font-size: 32px;
+      animation: iconFloat 2s ease-in-out infinite;
+    }
+
+    @keyframes iconFloat {
+      0%, 100% { transform: translateY(0) rotate(0deg); }
+      50% { transform: translateY(-5px) rotate(5deg); }
+    }
+
+    .card-emoji {
+      position: absolute;
+      font-size: 20px;
+      opacity: 0.3;
+      pointer-events: none;
+    }
+
+    .card-emoji-1 {
+      top: 15px;
+      left: 15px;
+      animation: emojiSpin 4s linear infinite;
+    }
+
+    .card-emoji-2 {
+      bottom: 15px;
+      right: 50px;
+      animation: emojiPulse 3s ease-in-out infinite;
+    }
+
+    @keyframes emojiSpin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    @keyframes emojiPulse {
+      0%, 100% { transform: scale(1); opacity: 0.3; }
+      50% { transform: scale(1.2); opacity: 0.5; }
+    }
+
+    .card-title {
+      font-family: 'Press Start 2P', cursive;
+      font-size: 20px;
+      color: #FFD700;
+      line-height: 1.6;
+      margin-bottom: 15px;
+      white-space: normal;
+    }
+
+    .card-desc {
+      font-family: 'Press Start 2P', cursive;
+      font-size: 20px;
+      color: rgba(255, 255, 255, 0.8);
+      line-height: 1.6;
+      white-space: normal;
+    }
+
+    .lobby-hint {
+      font-family: 'Press Start 2P', cursive;
+      font-size: 16px;
+      color: #FFB6C1;
+      margin-bottom: 30px;
+      animation: blink 1.5s infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .info-tags {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-bottom: 40px;
+    }
+
+    .info-tag {
+      font-family: 'VT323', monospace;
+      font-size: 18px;
+      padding: 8px 16px;
+      background: rgba(65, 105, 225, 0.3);
+      border: 2px solid #4169E1;
+      color: #fff;
+    }
+
+    .ending-section {
+      max-width: 800px;
+      text-align: center;
+      margin-top: 40px;
+    }
+
+    .ending-box {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      padding: 30px;
+      border: 2px solid #FFD700;
+      border-style: solid dashed;
+      margin-bottom: 30px;
+    }
+
+    .ending-text {
+      font-family: 'VT323', monospace;
+      font-size: 22px;
+      line-height: 1.8;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .ending-highlight {
+      font-family: 'VT323', monospace;
+      font-size: 22px;
+      color: #FFD700;
+      line-height: 1.8;
+      text-align: center;
+    }
+
+    .contact {
+      font-family: 'VT323', monospace;
+      font-size: 22px;
+      margin-bottom: 15px;
+    }
+
+    .footer-note {
+      font-family: 'VT323', monospace;
+      font-size: 18px;
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    .detail-page {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+      padding: 20px;
+    }
+
+    .detail-page.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .detail-content {
+      width: 80vw;
+      max-width: 1000px;
+      height: 70vh;
+      background: rgba(10, 10, 30, 0.95);
+      backdrop-filter: blur(20px);
+      border: 3px solid #FFD700;
+      border-style: solid dashed;
+      padding: 40px;
+      overflow-y: auto;
+      position: relative;
+      box-shadow: 0 0 50px rgba(255, 215, 0, 0.5);
+    }
+
+    .back-btn {
+      font-family: 'Press Start 2P', cursive;
+      font-size: 12px;
+      color: #FFB6C1;
+      background: transparent;
+      border: 2px solid #FFB6C1;
+      padding: 10px 20px;
+      cursor: none;
+      margin-bottom: 30px;
+      transition: all 0.2s;
+    }
+
+    .back-btn:hover {
+      background: #FFB6C1;
+      color: #000;
+    }
+
+    .detail-title {
+      font-family: 'VT323', monospace;
+      font-size: 32px;
+      color: #FFD700;
+      line-height: 1.6;
+      margin-bottom: 30px;
+      text-shadow: 3px 3px 0 #000;
+    }
+
+    .detail-text {
+      font-family: 'VT323', monospace;
+      font-size: 22px;
+      line-height: 1.8;
+      color: rgba(255, 255, 255, 0.9);
+      margin-bottom: 40px;
+    }
+
+    .detail-text .highlight {
+      color: #FFD700;
+      font-size: 26px;
+      font-weight: bold;
+    }
+
+    .detail-numbers {
+      display: flex;
+      gap: 40px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 40px;
+    }
+
+    .number-item {
+      text-align: center;
+    }
+
+    .number-value {
+      font-family: 'Press Start 2P', cursive;
+      font-size: 36px;
+      color: #FFD700;
+      text-shadow: 3px 3px 0 #000, 0 0 20px #FFD700;
+      display: block;
+      margin-bottom: 10px;
+    }
+
+    .number-label {
+      font-family: 'VT323', monospace;
+      font-size: 18px;
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    .ai-assistant {
+      position: fixed;
+      bottom: 40px;
+      right: 40px;
+      width: 64px;
+      height: 64px;
+      z-index: 1000;
+      cursor: none;
+      animation: float 2s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-3px); }
+    }
+
+    .ai-assistant:hover {
+      animation: spin 0.5s ease-in-out;
+    }
+
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    .chat-bubble {
+      position: fixed;
+      bottom: 120px;
+      right: 40px;
+      max-width: 250px;
+      background: rgba(255, 182, 193, 0.95);
+      color: #000;
+      padding: 15px;
+      font-family: 'VT323', monospace;
+      font-size: 18px;
+      border: 3px solid #000;
+      border-style: solid dashed;
+      opacity: 0;
+      transform: scale(0);
+      transition: all 0.3s;
+      z-index: 999;
+      box-shadow: 0 0 20px rgba(255, 182, 193, 0.5);
+    }
+
+    .chat-bubble.show {
+      opacity: 1;
+      transform: scale(1);
+      animation: bounce 0.3s ease-out;
+    }
+
+    @keyframes bounce {
+      0% { transform: scale(0); }
+      50% { transform: scale(1.1); }
+      100% { transform: scale(1); }
+    }
+
+    .chat-bubble::after {
+      content: '';
+      position: absolute;
+      bottom: -12px;
+      right: 20px;
+      width: 0;
+      height: 0;
+      border-left: 12px solid transparent;
+      border-right: 12px solid transparent;
+      border-top: 12px solid #000;
+    }
+
+    @media (max-width: 768px) {
+      .hero-title {
+        font-size: 24px;
+        gap: 8px;
+      }
+
+      .hero-subtitle {
+        font-size: 18px;
+        padding: 10px 16px;
+      }
+
+      .cards-grid {
+        grid-template-columns: 1fr;
+        gap: 30px;
+      }
+
+      .level-card {
+        width: 100%;
+        max-width: 350px;
+        margin: 0 auto;
+      }
+
+      .detail-content {
+        width: 95vw;
+        height: 85vh;
+        padding: 25px;
+      }
+
+      .detail-title {
+        font-size: 24px;
+      }
+
+      .card-title {
+        font-size: 16px;
+      }
+
+      .card-desc {
+        font-size: 16px;
+      }
+
+      .detail-text {
+        font-size: 18px;
+      }
+
+      .number-value {
+        font-size: 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="starCanvas"></canvas>
+  <canvas id="cursorCanvas"></canvas>
+
+  <div class="main-lobby" id="mainLobby">
+    <div class="hero-title">
+      <span>L</span><span>I</span><span>U</span><span> </span><span>S</span><span>E</span><span>N</span>
+    </div>
+    <div class="hero-subtitle">AIGC 创作者运营 · 即梦AI</div>
+    <div class="hero-tags">
+      <span class="pixel-tag">中日英三语</span>
+      <span class="pixel-tag">可灵AI实战6个月</span>
+      <span class="pixel-tag">从0到1搭建日本创作者生态</span>
+    </div>
+
+    <div class="cards-grid">
+      <div class="level-card" data-level="1">
+        <div class="card-emoji card-emoji-1">⭐</div>
+        <div class="card-emoji card-emoji-2">✨</div>
+        <div class="card-icon">🎯</div>
+        <div class="card-title">创作者分层体系</div>
+        <div class="card-desc">从 0 到 1 搭建<br>分层创作者生态</div>
+      </div>
+
+      <div class="level-card" data-level="2">
+        <div class="card-emoji card-emoji-1">💬</div>
+        <div class="card-emoji card-emoji-2">🎉</div>
+        <div class="card-icon">🚀</div>
+        <div class="card-title">社群与活动运营</div>
+        <div class="card-desc">用社群温度换取<br>创作者的活跃度</div>
+      </div>
+
+      <div class="level-card" data-level="3">
+        <div class="card-emoji card-emoji-1">💡</div>
+        <div class="card-emoji card-emoji-2">🔄</div>
+        <div class="card-icon">🎤</div>
+        <div class="card-title">用户反馈闭环</div>
+        <div class="card-desc">做用户和算法间<br>的同声传译</div>
+      </div>
+
+      <div class="level-card" data-level="4">
+        <div class="card-emoji card-emoji-1">📊</div>
+        <div class="card-emoji card-emoji-2">💎</div>
+        <div class="card-icon">📈</div>
+        <div class="card-title">数据驱动策略</div>
+        <div class="card-desc">让每一个决策<br>都有数据支撑</div>
+      </div>
+    </div>
+
+    <div class="lobby-hint">点击卡片,查看我的实战策略</div>
+
+    <div class="info-tags">
+      <span class="info-tag">一周内到岗</span>
+      <span class="info-tag">实习6个月+</span>
+      <span class="info-tag">每周5天</span>
+    </div>
+
+    <div class="ending-section">
+      <div class="ending-box">
+        <p class="ending-text">
+          我对AI内容生态和创作者运营有着深入的理解和持续的热情。<br>
+          具备这个岗位需要的网感、共情力、数据意识和强执行力。
+        </p>
+        <p class="ending-highlight">
+          希望加入即梦团队,一起把创作者生态做深做活。
+        </p>
+      </div>
+      <div class="contact">📧 1215592523@qq.com 📱 13125451896</div>
+      <div class="footer-note">✦ 本页面由我用 Vibe Coding 打造 ✦</div>
+    </div>
+  </div>
+
+  <div class="detail-page" id="detail1">
+    <div class="detail-content">
+      <button class="back-btn" onclick="closeDetail()">◀ 返回大厅</button>
+      <h2 class="detail-title">从 0 到 1 搭建分层创作者生态</h2>
+      <p class="detail-text">
+        从零搭建头部和优质创作者的分层评估标准,建立二者双轨成长体系和权益激励机制,并制定从新人入驻到升级的全流程SOP。通过多渠道拓展,成功实现头部创作者从 <span class="highlight">30</span> 人翻倍至 <span class="highlight">80</span> 人,优质创作者从 <span class="highlight">0</span> 孵化到 <span class="highlight">170</span> 人,月活稳定在 <span class="highlight">70%</span> 以上。
+      </p>
+      <div class="detail-numbers">
+        <div class="number-item">
+          <span class="number-value" data-target="30">0</span>
+          <span class="number-label">→82人</span>
+        </div>
+        <div class="number-item">
+          <span class="number-value" data-target="170">0</span>
+          <span class="number-label">0→170人</span>
+        </div>
+        <div class="number-item">
+          <span class="number-value" data-target="70">0</span>
+          <span class="number-label">70%+</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="detail-page" id="detail2">
+    <div class="detail-content">
+      <button class="back-btn" onclick="closeDetail()">◀ 返回大厅</button>
+      <h2 class="detail-title">用社群温度换创作者活跃度</h2>
+      <p class="detail-text">
+        搭建日本创作者专属Discord社群,并制定完整运营规范。主导Kling 3.0、动作控制3.0等重大功能上线的全周期运营,通过设计分层约稿矩阵和社群激励活动,使社群投稿量周环比增长 <span class="highlight">53%</span>,总播放量提升 <span class="highlight">173%</span>,还打造出单条最高<span class="highlight">千万播放</span>的爆款视频。
+      </p>
+      <div class="detail-numbers">
+        <div class="number-item">
+          <span class="number-value" data-target="53">0</span>
+          <span class="number-label">+53%</span>
+        </div>
+        <div class="number-item">
+          <span class="number-value" data-target="173">0</span>
+          <span class="number-label">+173%</span>
+        </div>
+        <div class="number-item">
+          <span class="number-value">千万</span>
+          <span class="number-label">播放</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="detail-page" id="detail3">
+    <div class="detail-content">
+      <button class="back-btn" onclick="closeDetail()">◀ 返回大厅</button>
+      <h2 class="detail-title">做用户与算法之间的同声传译</h2>
+      <p class="detail-text">
+        建立一套创作者反馈闭环机制,主导日语语音效果、新功能体验等专项调研,累计整理并提交超过 <span class="highlight">200</span> 条有效用户反馈,输出多份调研报告,直接推动产品的本地化功能迭代。这一过程中也通过用户洞察持续优化运营机制,最终实现优质创作者投稿量 <span class="highlight">293%</span> 的增长。
+      </p>
+      <div class="detail-numbers">
+        <div class="number-item">
+          <span class="number-value" data-target="200">0</span>
+          <span class="number-label">200+</span>
+        </div>
+        <div class="number-item">
+          <span class="number-value" data-target="293">0</span>
+          <span class="number-label">293%</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="detail-page" id="detail4">
+    <div class="detail-content">
+      <button class="back-btn" onclick="closeDetail()">◀ 返回大厅</button>
+      <h2 class="detail-title">让每一个决策都有数据撑腰</h2>
+      <p class="detail-text">
+        独立搭建日本区运营数据看板,覆盖活跃率、爆款率等核心指标,通过定期数据复盘来调优运营策略。同时建立常态化竞品监测体系,输出差异化策略,为业务决策提供有力支撑。
+      </p>
+      <div class="detail-numbers">
+        <div class="number-item">
+          <span class="number-value">数据</span>
+          <span class="number-label">看板</span>
+        </div>
+        <div class="number-item">
+          <span class="number-value">竞品</span>
+          <span class="number-label">监测</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ai-assistant" id="aiAssistant">
+    <canvas id="aiCanvas" width="64" height="64"></canvas>
+  </div>
+
+  <div class="chat-bubble" id="chatBubble"></div>
+
+  <script>
+    const starCanvas = document.getElementById('starCanvas');
+    const starCtx = starCanvas.getContext('2d');
+    starCanvas.width = window.innerWidth;
+    starCanvas.height = window.innerHeight;
+
+    const stars = [];
+    for (let i = 0; i < 100; i++) {
+      stars.push({
+        x: Math.random() * starCanvas.width,
+        y: Math.random() * starCanvas.height,
+        size: Math.random() * 2 + 1,
+        opacity: Math.random(),
+        speed: Math.random() * 0.5
+      });
+    }
+
+    function drawStars() {
+      starCtx.clearRect(0, 0, starCanvas.width, starCanvas.height);
+      stars.forEach(star => {
+        starCtx.fillStyle = `rgba(255, 255, 255, ${star.opacity})`;
+        starCtx.fillRect(star.x, star.y, star.size, star.size);
+        star.opacity += (Math.random() - 0.5) * 0.05;
+        star.opacity = Math.max(0.3, Math.min(1, star.opacity));
+        star.y += star.speed;
+        if (star.y > starCanvas.height) {
+          star.y = 0;
+          star.x = Math.random() * starCanvas.width;
+        }
+      });
+      requestAnimationFrame(drawStars);
+    }
+    drawStars();
+
+    setInterval(() => {
+      const meteor = {
+        x: Math.random() * starCanvas.width,
+        y: 0,
+        speed: 8
+      };
+      const meteorInterval = setInterval(() => {
+        starCtx.fillStyle = '#FFD700';
+        starCtx.fillRect(meteor.x, meteor.y, 4, 4);
+        meteor.x += 4;
+        meteor.y += meteor.speed;
+        if (meteor.y > starCanvas.height) clearInterval(meteorInterval);
+      }, 16);
+    }, 3000);
+
+    const cursorCanvas = document.getElementById('cursorCanvas');
+    const cursorCtx = cursorCanvas.getContext('2d');
+    cursorCanvas.width = window.innerWidth;
+    cursorCanvas.height = window.innerHeight;
+
+    let mouseX = 0, mouseY = 0;
+    let cursorX = 0, cursorY = 0;
+
+    document.addEventListener('mousemove', (e) => {
+      mouseX = e.clientX;
+      mouseY = e.clientY;
+    });
+
+    function drawCursor() {
+      cursorCtx.clearRect(0, 0, cursorCanvas.width, cursorCanvas.height);
+
+      cursorX += (mouseX - cursorX) * 0.2;
+      cursorY += (mouseY - cursorY) * 0.2;
+
+      cursorCtx.fillStyle = '#FFD700';
+      cursorCtx.fillRect(cursorX, cursorY, 3, 3);
+      cursorCtx.fillRect(cursorX, cursorY + 3, 3, 3);
+      cursorCtx.fillRect(cursorX, cursorY + 6, 3, 3);
+      cursorCtx.fillRect(cursorX, cursorY + 9, 3, 3);
+      cursorCtx.fillRect(cursorX + 3, cursorY + 3, 3, 3);
+      cursorCtx.fillRect(cursorX + 3, cursorY + 6, 3, 3);
+      cursorCtx.fillRect(cursorX + 6, cursorY + 6, 3, 3);
+
+      cursorCtx.fillStyle = '#000';
+      cursorCtx.fillRect(cursorX + 3, cursorY, 3, 3);
+      cursorCtx.fillRect(cursorX + 6, cursorY + 3, 3, 3);
+
+      requestAnimationFrame(drawCursor);
+    }
+    drawCursor();
+
+    const aiCanvas = document.getElementById('aiCanvas');
+    const aiCtx = aiCanvas.getContext('2d');
+
+    function drawPixelGirl() {
+      aiCtx.clearRect(0, 0, 64, 64);
+
+      const skin = '#ffd4c4';
+      const hair = '#5c3a21';
+      const hairLight = '#8b6f47';
+      const dress = '#FFB6C1';
+      const dressLight = '#ffd4e5';
+
+      aiCtx.fillStyle = hair;
+      aiCtx.fillRect(20, 10, 24, 30);
+      aiCtx.fillRect(16, 15, 4, 20);
+      aiCtx.fillRect(44, 15, 4, 20);
+      aiCtx.fillRect(14, 20, 2, 15);
+      aiCtx.fillRect(48, 20, 2, 15);
+
+      aiCtx.fillStyle = hairLight;
+      aiCtx.fillRect(22, 12, 2, 8);
+      aiCtx.fillRect(26, 12, 2, 8);
+
+      aiCtx.fillStyle = skin;
+      aiCtx.fillRect(24, 18, 16, 16);
+
+      aiCtx.fillStyle = '#ffb3d9';
+      aiCtx.fillRect(26, 22, 2, 2);
+      aiCtx.fillRect(36, 22, 2, 2);
+
+      aiCtx.fillStyle = '#fff';
+      aiCtx.fillRect(26, 24, 6, 4);
+      aiCtx.fillRect(32, 24, 6, 4);
+
+      aiCtx.fillStyle = '#000';
+      aiCtx.fillRect(28, 26, 2, 2);
+      aiCtx.fillRect(34, 26, 2, 2);
+
+      aiCtx.fillStyle = '#fff';
+      aiCtx.fillRect(29, 26, 1, 1);
+      aiCtx.fillRect(35, 26, 1, 1);
+
+      aiCtx.fillStyle = '#000';
+      aiCtx.fillRect(28, 30, 8, 2);
+
+      aiCtx.fillStyle = dress;
+      aiCtx.fillRect(20, 34, 24, 20);
+      aiCtx.fillRect(16, 40, 4, 10);
+      aiCtx.fillRect(44, 40, 4, 10);
+
+      aiCtx.fillStyle = dressLight;
+      aiCtx.fillRect(24, 38, 4, 4);
+      aiCtx.fillRect(36, 38, 4, 4);
+      aiCtx.fillRect(28, 44, 8, 2);
+    }
+
+    drawPixelGirl();
+
+    let blinkInterval = setInterval(() => {
+      aiCtx.fillStyle = '#ffd4c4';
+      aiCtx.fillRect(26, 24, 12, 4);
+      setTimeout(() => drawPixelGirl(), 150);
+    }, 4000);
+
+    document.addEventListener('mousemove', (e) => {
+      const rect = aiCanvas.getBoundingClientRect();
+      const centerX = rect.left + 32;
+      const centerY = rect.top + 32;
+      const angle = Math.atan2(e.clientY - centerY, e.clientX - centerX);
+      const offsetX = Math.cos(angle) * 1;
+      const offsetY = Math.sin(angle) * 1;
+
+      drawPixelGirl();
+      aiCtx.fillStyle = '#000';
+      aiCtx.fillRect(28 + offsetX, 26 + offsetY, 2, 2);
+      aiCtx.fillRect(34 + offsetX, 26 + offsetY, 2, 2);
+    });
+
+    const chatBubble = document.getElementById('chatBubble');
+    const messages = {
+      lobby: '你好!我是刘森(像素小人版)。点击卡片,看看我的四大核心能力吧~',
+      detail1: '这是我最擅长的:把模糊的创作者池,变成可量化的增长引擎。',
+      detail2: 'Kling 3.0 日本登陆战!看我怎么用分层矩阵打出千万爆款。',
+      detail3: '日语语音优化,是我把用户牢骚翻译成产品需求的经典案例。',
+      detail4: '数据不会说谎,我搭的看板让每次决策都有据可依。',
+      back: '还想了解什么?可以再点一张卡片看看哦~'
+    };
+
+    function showMessage(key) {
+      chatBubble.textContent = messages[key];
+      chatBubble.classList.remove('show');
+      setTimeout(() => chatBubble.classList.add('show'), 100);
+    }
+
+    showMessage('lobby');
+
+    const cards = document.querySelectorAll('.level-card');
+    cards.forEach(card => {
+      card.addEventListener('click', () => {
+        const level = card.dataset.level;
+        openDetail(level);
+      });
+    });
+
+    let currentDetail = null;
+
+    function openDetail(level) {
+      currentDetail = level;
+      document.getElementById('mainLobby').classList.add('hidden');
+      document.getElementById(`detail${level}`).classList.add('active');
+      showMessage(`detail${level}`);
+
+      const numbers = document.querySelectorAll(`#detail${level} .number-value[data-target]`);
+      numbers.forEach(num => {
+        const target = parseInt(num.dataset.target);
+        let current = 0;
+        const increment = target / 50;
+        const timer = setInterval(() => {
+          current += increment;
+          if (current >= target) {
+            num.textContent = target;
+            clearInterval(timer);
+          } else {
+            num.textContent = Math.floor(current);
+          }
+        }, 30);
+      });
+    }
+
+    function closeDetail() {
+      if (currentDetail) {
+        document.getElementById(`detail${currentDetail}`).classList.remove('active');
+        document.getElementById('mainLobby').classList.remove('hidden');
+        currentDetail = null;
+        showMessage('back');
+      }
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeDetail();
+      }
+    });
+
+    window.addEventListener('resize', () => {
+      starCanvas.width = window.innerWidth;
+      starCanvas.height = window.innerHeight;
+      cursorCanvas.width = window.innerWidth;
+      cursorCanvas.height = window.innerHeight;
+    });
+  </script>
+</body>
+</html>
